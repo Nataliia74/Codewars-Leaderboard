@@ -10,6 +10,8 @@ inputArea.addEventListener("input", () => {
   inputArea.setCustomValidity("");
 });
 
+let allUsers = [];
+
 form.addEventListener("submit", async function fetchData(e) {
   e.preventDefault();
   let userInput = inputArea.value.trim();
@@ -22,42 +24,103 @@ form.addEventListener("submit", async function fetchData(e) {
     inputArea.setCustomValidity("");
   }
   let usernames = userInput.split(",").map((name) => name.trim());
-  try {
-    // bodyTable.innerHTML = "";
-    for (let username of usernames) {
+
+  allUsers = [];
+  bodyTable.innerHTML = "";
+  const invalidUsers = [];
+
+  for (let username of usernames) {
+    try {
       const response = await fetch(
         `https://www.codewars.com/api/v1/users/${username}`
       );
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        invalidUsers.push(username);
+        // throw new Error(`HTTP error! status: ${response.status}`);
+        continue;
       }
 
       const data = await response.json();
-      renderTable(data);
+      allUsers.push(data);
+    } catch {
+      invalidUsers.push(username);
     }
-    inputArea.value = "";
-  } catch (error) {
-    // errorMessage.textContent = error.message;
-    alert(error.message);
-    inputArea.value = "";
   }
+
+  if (invalidUsers.length) {
+    alert(`These users were not found: ${invalidUsers.join(", ")}`);
+  }
+
+  populateDropDownLanguage(allUsers);
+  renderTable("overall");
+
+  inputArea.value = "";
+  // } catch (error) {
+  //   // errorMessage.textContent = error.message;
+  //   alert(error.message);
+  //   inputArea.value = "";
+  // }
 });
 
-function renderTable(data) {
-  const row = document.createElement("tr");
+function populateDropDownLanguage(usersData) {
+  selectorLanguages.innerHTML = "";
 
-  const thRow = document.createElement("th");
-  thRow.scope = "row";
-  thRow.textContent = data.username;
-  row.appendChild(thRow);
+  const languages = new Set(["overall"]);
 
-  const tdRow1 = document.createElement("td");
-  tdRow1.textContent = data.clan || "No clan";
-  row.appendChild(tdRow1);
+  usersData.forEach((user) => {
+    Object.keys(user.ranks.languages).forEach((lang) => languages.add(lang));
+  });
 
-  const tdRow2 = document.createElement("td");
-  tdRow2.textContent = data.honor;
-  row.appendChild(tdRow2);
-
-  bodyTable.appendChild(row);
+  languages.forEach((lang) => {
+    const optionLanguage = document.createElement("option");
+    optionLanguage.value = lang;
+    optionLanguage.textContent = lang === "overall" ? "Overall Ranking" : lang;
+    selectorLanguages.appendChild(optionLanguage);
+  });
 }
+
+function renderTable(selectedLanguage) {
+  bodyTable.innerHTML = "";
+
+  const rows = [];
+  allUsers.forEach((user) => {
+    let score;
+    let clan = user.clan || "";
+
+    if (selectedLanguage === "overall") {
+      score = user.ranks.overall.score;
+    } else if (user.ranks.languages[selectedLanguage]) {
+      score = user.ranks.languages[selectedLanguage].score;
+    } else {
+      return;
+    }
+
+    rows.push({ username: user.username, clan, score });
+  });
+
+  rows.sort((a, b) => b.score - a.score);
+
+  rows.forEach((r, index) => {
+    const row = document.createElement("tr");
+    if (index === 0) row.style.backgroundColor = "gold";
+
+    const thRow = document.createElement("th");
+    thRow.scope = "row";
+    thRow.textContent = r.username;
+    row.appendChild(thRow);
+
+    const tdRow1 = document.createElement("td");
+    tdRow1.textContent = r.clan || "No clan";
+    row.appendChild(tdRow1);
+
+    const tdRow2 = document.createElement("td");
+    tdRow2.textContent = r.score;
+    row.appendChild(tdRow2);
+
+    bodyTable.appendChild(row);
+  });
+}
+
+selectorLanguages.addEventListener("change", () =>
+  renderTable(selectorLanguages.value)
+);
