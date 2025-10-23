@@ -104,18 +104,18 @@ function renderTable(selectedLanguage) {
     const row = document.createElement("tr");
     if (index === 0) row.style.backgroundColor = "gold";
 
-    const thRow = document.createElement("th");
-    thRow.scope = "row";
-    thRow.textContent = r.username;
-    row.appendChild(thRow);
+    const thCell = document.createElement("th");
+    thCell.scope = "row";
+    thCell.textContent = r.username;
+    row.appendChild(thCell);
 
-    const tdRow1 = document.createElement("td");
-    tdRow1.textContent = r.clan || "No clan";
-    row.appendChild(tdRow1);
+    const tdCell1 = document.createElement("td");
+    tdCell1.textContent = r.clan || "No clan";
+    row.appendChild(tdCell1);
 
-    const tdRow2 = document.createElement("td");
-    tdRow2.textContent = r.score;
-    row.appendChild(tdRow2);
+    const tdCell2 = document.createElement("td");
+    tdCell2.textContent = r.score;
+    row.appendChild(tdCell2);
 
     bodyTable.appendChild(row);
   });
