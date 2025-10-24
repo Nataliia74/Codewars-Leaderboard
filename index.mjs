@@ -1,8 +1,23 @@
-// This is a placeholder file to show how you can "mock" fetch requests using
-// the nock library.
-// You can delete the contents of the file once you have understood how it
-// works.
+export async function fetchUsers(usernames) {
+  const allUsers = [];
+  const invalidUsers = [];
+  let networkFailed = false;
 
-export function makeFetchRequest() {
-  return fetch("https://example.com/test");
+  for (let username of usernames) {
+    try {
+      const response = await fetch(
+        `https://www.codewars.com/api/v1/users/${username}`
+      );
+      if (!response.ok) {
+        invalidUsers.push(username);
+        continue;
+      }
+      const data = await response.json();
+      allUsers.push(data);
+    } catch {
+      networkFailed = true;
+      invalidUsers.push(username);
+    }
+  }
+  return { allUsers, invalidUsers, networkFailed };
 }
