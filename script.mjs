@@ -1,9 +1,8 @@
+import { fetchUsers } from "./index.mjs";
+
 const form = document.querySelector("form");
 const inputArea = document.getElementById("usernames_list");
-// const errorMessage = document.getElementById("error");
 const selectorLanguages = document.getElementById("select_language");
-// const fetchButton = document.getElementById("getDataButton");
-const tableLeaders = document.getElementById("leaderboardTable");
 const bodyTable = document.getElementById("leaderboardBody");
 
 inputArea.addEventListener("input", () => {
@@ -14,52 +13,26 @@ let allUsers = [];
 
 form.addEventListener("submit", async function fetchData(e) {
   e.preventDefault();
+
   let userInput = inputArea.value.trim();
-
   if (!userInput) {
-    inputArea.setCustomValidity("Please type at least one username!");
-    // inputArea.reportValidity();
+    inputArea.setCustomValidity("Please type at least one username");
     return;
-  } else {
-    inputArea.setCustomValidity("");
   }
-  let usernames = userInput.split(",").map((name) => name.trim());
+  const usernames = userInput.split(",").map((name) => name.trim());
+  const result = await fetchUsers(usernames);
+  allUsers = result.allUsers;
+  const invalidUsers = result.invalidUsers;
+  const networkFailed = result.networkFailed;
 
-  allUsers = [];
-  bodyTable.innerHTML = "";
-  const invalidUsers = [];
-
-  for (let username of usernames) {
-    try {
-      const response = await fetch(
-        `https://www.codewars.com/api/v1/users/${username}`
-      );
-      if (!response.ok) {
-        invalidUsers.push(username);
-        // throw new Error(`HTTP error! status: ${response.status}`);
-        continue;
-      }
-
-      const data = await response.json();
-      allUsers.push(data);
-    } catch {
-      invalidUsers.push(username);
-    }
-  }
-
-  if (invalidUsers.length) {
+  if (networkFailed) alert("Network or fetch error");
+  if (invalidUsers.length && !networkFailed)
     alert(`These users were not found: ${invalidUsers.join(", ")}`);
-  }
 
   populateDropDownLanguage(allUsers);
   renderTable("overall");
 
   inputArea.value = "";
-  // } catch (error) {
-  //   // errorMessage.textContent = error.message;
-  //   alert(error.message);
-  //   inputArea.value = "";
-  // }
 });
 
 function populateDropDownLanguage(usersData) {
@@ -102,7 +75,10 @@ function renderTable(selectedLanguage) {
 
   rows.forEach((r, index) => {
     const row = document.createElement("tr");
-    if (index === 0) row.style.backgroundColor = "gold";
+    if (index === 0) {
+      row.style.backgroundColor = "lightgreen";
+      row.style.fontWeight = "bold";
+    }
 
     const thCell = document.createElement("th");
     thCell.scope = "row";
