@@ -17,13 +17,5 @@ test("mocks a fetch function", async () => {
   assert.strictEqual(invalidUsers.length, 1);
   assert.strictEqual(networkFailed, false);
 
-  //
-  // const response = await makeFetchRequest();
-  // const parsedResponse = await response.json();
-  // assert(parsedResponse.user === "someone");
-
-  // Ensure that a fetch request has been replaced by the nock library. This
-  // helps ensure that you're not making real fetch requests that don't match
-  // the nock configuration.
   assert(scope.isDone() === true, "No matching fetch request has been made");
 });
