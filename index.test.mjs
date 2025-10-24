@@ -4,7 +4,7 @@ import nock from "nock";
 import { fetchUsers } from "./index.mjs";
 
 test("mocks a fetch function", async () => {
-  const scope = nock("http://www.codewars.com")
+  const scope = nock("https://www.codewars.com")
     .get("/api/v1/users/nonexistent")
     .reply(404);
 
